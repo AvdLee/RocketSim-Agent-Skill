@@ -1,7 +1,7 @@
 {
   "name": "rocketsim",
   "version": "1.0.0",
-  "description": "Use RocketSim to inspect and interact with iOS Simulator apps through the RocketSim CLI.",
+  "description": "Use RocketSim to inspect visible UI and interact with iOS Simulator apps. Detect the installed RocketSim version, load the matching bundled RocketSim CLI guidance, and navigate, tap, swipe, type, and automate simulator flows reliably.",
   "author": {
     "name": "Antoine van der Lee",
     "email": "contact@avanderlee.com"
@@ -15,6 +15,10 @@
     "xcode",
     "automation",
     "accessibility",
+    "visible-ui",
+    "navigation",
+    "tap",
+    "swipe",
     "ui-testing"
   ],
   "skills": [

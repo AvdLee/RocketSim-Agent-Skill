@@ -23,11 +23,26 @@ Good contributions include:
 - Avoid generic iOS architecture or testing guidance
 - Keep packaging manifests and versions in sync
 
+## Packaging Sync Checklist
+Treat the following files as one surface area when changing install metadata, repository URLs, skill paths, or release versions:
+
+- `Agent-Skill/SKILL.md`
+- `agents/openai.yaml`
+- `.claude-plugin/plugin.json`
+- `.claude-plugin/marketplace.json`
+- `.cursor-plugin/plugin.json`
+- `README.md`
+
+The canonical public repository for install commands and manifests is `https://github.com/AvdLee/RocketSim-Agent-Skill`, and the installable skill directory is `Agent-Skill/`.
+
 ## Pull Request Process
 1. Create a focused branch.
 2. Make the smallest change that fully solves the issue.
 3. Ensure `Agent-Skill/SKILL.md`, the packaging manifests, and the README stay consistent.
 4. Open a PR with a short summary and verification notes.
+
+## Licensing Note
+This repository is distributed under the proprietary terms in `LICENSE`. Maintainers may ask contributors to clarify authorship or rights before merging changes that affect distributable skill assets.
 
 ## Development Setup
 - Standard Markdown and JSON editing is sufficient.

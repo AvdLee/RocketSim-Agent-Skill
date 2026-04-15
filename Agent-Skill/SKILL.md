@@ -1,6 +1,6 @@
 ---
 name: rocketsim
-description: "Use RocketSim to inspect and interact with iOS Simulator apps. Detects the installed RocketSim version, loads the matching RocketSim CLI guidance, and enables agents to list visible accessibility elements, navigate screens, tap, long-press, swipe, type text, press simulator hardware buttons, and automate simulator flows reliably. Use when: (1) the user mentions RocketSim, the rocketsim command, or RocketSim CLI, (2) interacting with an app in the iOS Simulator, (3) navigating or testing a simulator app with AI, (4) reading screen elements, accessibility elements, or visible UI state, (5) tapping, long-pressing, swiping, typing, or pressing simulator buttons, (6) using RocketSim instead of ad-hoc simulator automation."
+description: "Use RocketSim to inspect visible UI and interact with iOS Simulator apps. Detects the installed RocketSim version, loads the matching bundled RocketSim CLI guidance, and helps agents read visible accessibility elements, navigate screens, tap, long-press, swipe, type text, press simulator hardware buttons, and automate simulator flows reliably. Use when: (1) the user mentions RocketSim, the rocketsim command, or RocketSim CLI, (2) interacting with an app in the iOS Simulator, (3) navigating or testing a simulator app with AI, (4) reading visible UI state or accessibility elements, (5) tapping, long-pressing, swiping, typing, or pressing simulator buttons, (6) using RocketSim instead of ad-hoc simulator automation."
 ---
 
 # RocketSim Agent Skill

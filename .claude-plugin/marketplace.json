@@ -7,12 +7,12 @@
     "email": "contact@avanderlee.com"
   },
   "metadata": {
-    "description": "Use RocketSim to inspect and interact with iOS Simulator apps through the RocketSim CLI."
+    "description": "Use RocketSim to inspect visible UI and interact with iOS Simulator apps. Detect the installed RocketSim version, load the matching bundled RocketSim CLI guidance, and automate simulator flows reliably."
   },
   "plugins": [
     {
       "name": "rocketsim",
-      "description": "Use RocketSim to inspect visible simulator UI and interact with iOS Simulator apps through the RocketSim CLI.",
+      "description": "Use RocketSim to inspect visible UI and interact with iOS Simulator apps. Detect the installed RocketSim version, load the matching bundled RocketSim CLI guidance, and navigate, tap, swipe, type, and automate simulator flows reliably.",
       "repository": "https://github.com/AvdLee/RocketSim-Agent-Skill",
       "version": "1.0.0",
       "author": {
@@ -28,6 +28,10 @@
         "xcode",
         "automation",
         "accessibility",
+        "visible-ui",
+        "navigation",
+        "tap",
+        "swipe",
         "ui-testing"
       ],
       "tags": [
@@ -37,6 +41,10 @@
         "xcode",
         "automation",
         "accessibility",
+        "visible-ui",
+        "navigation",
+        "tap",
+        "swipe",
         "ui-testing"
       ],
       "source": "./"

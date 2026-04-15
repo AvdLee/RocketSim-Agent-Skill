@@ -11,6 +11,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   release:
     if: github.ref == 'refs/heads/main'
@@ -106,6 +110,78 @@ jobs:
                 raise SystemExit("Expected at least one plugin in .claude-plugin/marketplace.json")
               data["plugins"][0]["version"] = version
             path.write_text(json.dumps(data, indent=2) + "\n")
+          PY2
+
+      - name: Validate packaged metadata
+        run: |
+          set -euo pipefail
+
+          python3 <<'PY2'
+          import json
+          import os
+          import pathlib
+          import re
+
+          version = os.environ["VERSION"]
+          repository = "https://github.com/AvdLee/RocketSim-Agent-Skill"
+
+          openai_path = pathlib.Path("agents/openai.yaml")
+          openai_text = openai_path.read_text()
+
+          version_match = re.search(r'(?m)^version:\s*"([^"]+)"$', openai_text)
+          repository_match = re.search(r'(?m)^repository:\s*(.+)$', openai_text)
+
+          if not version_match or version_match.group(1) != version:
+            raise SystemExit("agents/openai.yaml version is out of sync")
+
+          if not repository_match or repository_match.group(1).strip() != repository:
+            raise SystemExit("agents/openai.yaml repository is out of sync")
+
+          required_terms = ["RocketSim", "Simulator"]
+          for term in required_terms:
+            if term not in openai_text:
+              raise SystemExit(f"agents/openai.yaml description must mention {term}")
+
+          expected_json = {
+              pathlib.Path(".claude-plugin/plugin.json"): {
+                  "skills": ["./Agent-Skill"],
+                  "repository": repository,
+              },
+              pathlib.Path(".claude-plugin/marketplace.json"): {
+                  "name": "rocketsim-agent-skill",
+                  "repository": repository,
+              },
+              pathlib.Path(".cursor-plugin/plugin.json"): {
+                  "skills": ["Agent-Skill"],
+                  "repository": repository,
+              },
+          }
+
+          for path, expectations in expected_json.items():
+            data = json.loads(path.read_text())
+
+            if data.get("version") != version:
+              raise SystemExit(f"{path} version is out of sync")
+
+            if path.name == "marketplace.json":
+              if data.get("name") != expectations["name"]:
+                raise SystemExit("Marketplace package name changed unexpectedly")
+              if not data.get("plugins"):
+                raise SystemExit("Marketplace file must contain at least one plugin")
+              plugin = data["plugins"][0]
+              if plugin.get("version") != version:
+                raise SystemExit("Marketplace plugin version is out of sync")
+              if plugin.get("repository") != expectations["repository"]:
+                raise SystemExit("Marketplace plugin repository is out of sync")
+              if "RocketSim" not in data.get("metadata", {}).get("description", ""):
+                raise SystemExit("Marketplace metadata description must mention RocketSim")
+            else:
+              if data.get("repository") != expectations["repository"]:
+                raise SystemExit(f"{path} repository is out of sync")
+              if data.get("skills") != expectations["skills"]:
+                raise SystemExit(f"{path} skills path changed unexpectedly")
+              if "RocketSim" not in data.get("description", ""):
+                raise SystemExit(f"{path} description must mention RocketSim")
           PY2
 
       - name: Commit and push version bump
