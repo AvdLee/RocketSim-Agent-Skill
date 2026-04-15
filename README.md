@@ -46,7 +46,7 @@ Follow these steps:
 
 Example prompt:
 
-> Use RocketSim to navigate through the app in the Simulator
+> Use RocketSim to navigate through <your_app_name> in the Simulator
 
 ### Option A: Using skills.sh
 
