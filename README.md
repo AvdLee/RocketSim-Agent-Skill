@@ -1,4 +1,4 @@
-![RocketSim Agent Skill](assets/banner.svg)
+![RocketSim Agent Skill](assets/banner.jpg)
 
 # RocketSim Agent Skill
 
