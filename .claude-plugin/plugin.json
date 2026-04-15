@@ -1,0 +1,27 @@
+{
+  "name": "rocketsim",
+  "version": "1.0.0",
+  "description": "Use RocketSim to inspect visible UI and interact with iOS Simulator apps. Detect the installed RocketSim version, load the matching bundled RocketSim CLI guidance, and navigate, tap, swipe, type, and automate simulator flows reliably.",
+  "author": {
+    "name": "Antoine van der Lee",
+    "email": "contact@avanderlee.com"
+  },
+  "repository": "https://github.com/AvdLee/RocketSim-Agent-Skill",
+  "license": "UNLICENSED",
+  "keywords": [
+    "rocketsim",
+    "simulator",
+    "ios",
+    "xcode",
+    "automation",
+    "accessibility",
+    "visible-ui",
+    "navigation",
+    "tap",
+    "swipe",
+    "ui-testing"
+  ],
+  "skills": [
+    "./Agent-Skill"
+  ]
+}
