@@ -6,6 +6,8 @@ The RocketSim Agent Skill is a companion skill for [RocketSim](https://www.rocke
 
 This repository contains only the installable skill assets, so tools like `skills.sh`, Claude Code, Cursor, and OpenAI-compatible agents can install the skill quickly without cloning the full RocketSim app repository.
 
+The canonical install source for this skill is `https://github.com/AvdLee/RocketSim-Agent-Skill`, and the installable skill directory is `Agent-Skill/`.
+
 ## What It Does
 
 - Detects the installed RocketSim version before interacting with the Simulator
@@ -66,7 +68,7 @@ To install this skill for your personal use in Claude Code:
 
 ### Option C: Cursor
 
-This repository includes Cursor plugin metadata. Until the marketplace listing is live, install or symlink the `Agent-Skill/` folder into your Cursor skills directory following Cursor's documentation:
+This repository includes Cursor plugin metadata. Install or symlink the `Agent-Skill/` folder into your Cursor skills directory following Cursor's documentation:
 
 ```bash
 mkdir -p .cursor/skills
@@ -82,6 +84,8 @@ cp -R Agent-Skill/ "$CODEX_HOME/skills/rocketsim"
 ```
 
 See the [Codex skills documentation](https://developers.openai.com/codex/skills/) for details on where to save skills.
+
+All packaged install surfaces in this repository intentionally point at this same repository and the `Agent-Skill/` directory, so keep those paths aligned if you fork or repackage the skill.
 
 ## How to Verify
 
