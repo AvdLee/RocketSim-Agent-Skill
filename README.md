@@ -4,6 +4,8 @@
 
 The RocketSim Agent Skill is a companion skill for [RocketSim](https://www.rocketsim.app) that gives AI coding tools a reliable, stateful way to inspect and interact with iOS Simulator apps.
 
+For the latest documentation on agentic coding with RocketSim, we encourage you to read the [RocketSim documentation](https://www.rocketsim.app/docs/features/agentic-development/).
+
 This repository contains only the installable skill assets, so tools like `skills.sh`, Claude Code, Cursor, and OpenAI-compatible agents can install the skill quickly without cloning the full RocketSim app repository.
 
 The canonical install source for this skill is `https://github.com/AvdLee/RocketSim-Agent-Skill`, and the installable skill directory is `Agent-Skill/`.
