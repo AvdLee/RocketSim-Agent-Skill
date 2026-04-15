@@ -38,6 +38,16 @@ This split keeps the public discovery layer stable while letting the installed R
 
 ## How to Use This Skill
 
+Follow these steps:
+
+1. Install [RocketSim from the Mac App Store](https://apps.apple.com/app/apple-store/id1504940162?pt=117264678&ct=Agent-Skill-Readme&mt=8).
+2. Install this skill using one of the options below.
+3. Open your agent and write a prompt similar to the example prompt shown below.
+
+Example prompt:
+
+> Use RocketSim to navigate through the app in the Simulator
+
 ### Option A: Using skills.sh
 
 Install this skill with a single command:
@@ -45,10 +55,6 @@ Install this skill with a single command:
 ```bash
 npx skills add https://github.com/AvdLee/RocketSim-Agent-Skill --skill rocketsim
 ```
-
-Then use the skill in your AI agent, for example:
-
-> Use RocketSim to navigate through the app in the Simulator
 
 ### Option B: Claude Code Plugin
 
@@ -109,7 +115,7 @@ If you want to learn more about RocketSim itself, use the canonical product reso
 
 - [RocketSim website](https://www.rocketsim.app)
 - [RocketSim documentation](https://www.rocketsim.app/docs)
-- [RocketSim on the Mac App Store](https://apps.apple.com/us/app/rocketsim-for-xcode-simulator/id1504940162)
+- [RocketSim on the Mac App Store](https://apps.apple.com/app/apple-store/id1504940162?pt=117264678&ct=Agent-Skill-Readme&mt=8)
 
 ## Support and Feedback
 
