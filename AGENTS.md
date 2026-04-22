@@ -6,10 +6,9 @@ This document provides guidance for AI agents working with this repository so th
 
 ### 1. RocketSim Focus Only
 This is a RocketSim skill repository. Keep the content focused on:
-- simulator interaction through RocketSim
-- the public discovery skill
-- the bundled in-app skill
-- the RocketSim CLI
+- simulator interaction through the `rocketsim` CLI on `PATH`
+- the `rs/1` JSON protocol
+- the agent loop (snapshot → act → wait → re-snapshot)
 - packaging and release metadata for the skill
 
 Do not add:
@@ -22,21 +21,22 @@ Do not add:
 The most important lines in this repository are the YAML frontmatter in `Agent-Skill/SKILL.md` and the install metadata in the plugin manifests.
 
 When updating them:
-- prefer clear trigger phrases like RocketSim, Simulator, visible elements, tap, swipe, type, and navigate
+- prefer clear trigger phrases like RocketSim, Simulator, visible elements, tap, swipe, type, scroll, focus, navigate
 - keep the skill description user-intent oriented
 - avoid vague wording like "helps with simulator tasks"
 
-### 3. Keep Discovery Accurate
-The discovery flow must reflect real-world RocketSim installs.
+### 3. Keep The Skill Token-Minimal
+The whole point of this skill is to *reduce* tokens spent per agent session. Every change should ask: does this earn its tokens?
 
 Do:
-- prefer the running RocketSim app when available
-- validate the bundled skill and CLI paths before proceeding
-- document failure modes clearly
+- favor short tables and one-line examples over prose
+- keep error taxonomies as flat tables, not paragraphs
+- link to <https://www.rocketsim.app/docs/features/agentic-development/> for long-form details rather than duplicating them
 
 Do not:
-- assume `/Applications/RocketSim.app` is always correct
-- allow the skill to continue without a validated CLI path
+- reintroduce a discovery flow (we removed that in 2.0; the CLI must be on `PATH`)
+- duplicate the canonical `rs/1` protocol reference inside this repo
+- add tutorial-style scaffolding when a code snippet would do
 
 ### 4. Packaging Files Must Stay In Sync
 Whenever the skill changes in a way that affects installation or versioning, update the packaging files together:
@@ -45,13 +45,13 @@ Whenever the skill changes in a way that affects installation or versioning, upd
 - `.claude-plugin/marketplace.json`
 - `.cursor-plugin/plugin.json`
 
-Keep repository URLs, version numbers, and skill paths aligned.
+Keep repository URLs and skill paths aligned. Versions are bumped automatically by `.github/workflows/release.yml` on dispatch — do not bump them manually in PRs.
 
 ### 5. README Should Sell The Outcome
 The README should explain why this skill matters:
 - it is a companion to RocketSim
-- it gives agents a stateful way to interact with the Simulator
-- it reduces guesswork and token waste by using RocketSim as the interaction layer
+- it gives agents a stateful way to interact with the Simulator with low token cost
+- it stays in lock-step with the installed RocketSim version automatically (because the CLI on `PATH` is a symlink into the app bundle)
 
 Avoid over-explaining internal implementation details in the opening sections.
 
@@ -65,7 +65,7 @@ Use language that is:
 
 Prefer:
 - "Use RocketSim to inspect visible UI and interact with the Simulator"
-- "Detects the installed RocketSim version and uses the matching CLI"
+- "Talk to the `rocketsim` CLI on `PATH` directly via the `rs/1` protocol"
 
 Avoid:
 - heavy product hype
@@ -75,13 +75,13 @@ Avoid:
 ## Updating This Repository
 
 When making changes, check:
-1. Is the skill still focused on RocketSim-powered Simulator interaction?
-2. Is the discovery flow still accurate?
+1. Is the skill still focused on the `rs/1` agent loop?
+2. Does the SKILL.md still pay for its tokens?
 3. Do the plugin manifests still reference the right repository and skill path?
 4. Does the README still make the value obvious to first-time visitors?
 
 ## Summary
 
-**Focus**: RocketSim-driven Simulator interaction
-**Avoid**: generic app architecture, competitor comparisons, broad testing advice
+**Focus**: low-token, CLI-direct simulator interaction via the `rs/1` protocol
+**Avoid**: discovery flows, generic app architecture, competitor comparisons, broad testing advice
 **Goal**: make it easy for AI tools to install and use RocketSim as the best interaction layer for iOS Simulator automation

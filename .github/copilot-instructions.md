@@ -13,7 +13,8 @@ Review changes as an **Agent Skills expert**, focusing on the **Agent Skills ope
 - **Filesystem-based design**: package manifests should point cleanly at the installable skill directory.
 
 ## RocketSim Repository Constraints
-- **RocketSim-specific only**: focus on Simulator interaction through RocketSim, bundled skill discovery, CLI usage, and packaging metadata.
+- **RocketSim-specific only**: focus on Simulator interaction through the `rocketsim` CLI on `PATH`, the `rs/1` JSON protocol, the agent loop, and packaging metadata.
+- **No discovery flows**: 2.0 removed in-app bundle discovery. The skill must assume `rocketsim` is on `PATH` (installed via RocketSim → Settings → Command Line Tool). Do not reintroduce filesystem walks for `RocketSim.app`.
 - **No competitor comparisons**: do not mention or compare against other simulator automation tools.
 - **No architecture mandates**: do not prescribe app architectures, testing stacks, or project structures.
 - **No generic iOS testing theory**: stay focused on what RocketSim enables, not broad QA strategy.
@@ -24,19 +25,21 @@ Review changes as an **Agent Skills expert**, focusing on the **Agent Skills ope
 Examples in this repository are reference patterns for AI agents, not production application code. When reviewing:
 - Do not request fully self-contained examples when a short shell or CLI snippet is sufficient.
 - Do flag incorrect CLI commands, broken paths, or mismatched repository metadata.
-- Do flag factual inaccuracies around bundled-skill paths, CLI capabilities, or installation flows.
+- Do flag factual inaccuracies around CLI capabilities, the `rs/1` protocol, or the install flow.
 
 ## Review Focus Areas
 
 1. **Trigger quality**
    - Does the skill description clearly match prompts about RocketSim, Simulator interaction, visible UI, and agent automation?
-2. **Discovery accuracy**
-   - Are bundle detection, validation, and handoff steps correct for real RocketSim installs?
-3. **Packaging quality**
+2. **Token budget**
+   - Does every section of `SKILL.md` pay for its tokens? Prefer tables and one-line examples; link to <https://www.rocketsim.app/docs/features/agentic-development/> for long-form details.
+3. **CLI accuracy**
+   - Are the `rocketsim` commands, flags, error codes, and the `rs/1` JSON envelope described correctly and consistently with the latest RocketSim release?
+4. **Packaging quality**
    - Do manifest files reference the correct repository, skill path, and version?
-4. **Release safety**
+5. **Release safety**
    - Does the release workflow only update the intended package files and use the correct default branch?
-5. **README clarity**
+6. **README clarity**
    - Does the README explain the skill as a companion to RocketSim and make installation fast and obvious?
 
 ## Common Issues to Flag
@@ -44,7 +47,8 @@ Examples in this repository are reference patterns for AI agents, not production
 - Vague descriptions that do not mention RocketSim or Simulator interaction explicitly
 - Packaging files still pointing at `RocketSimApp` instead of `RocketSim-Agent-Skill`
 - Release workflows targeting the wrong branch or failing to bump all package manifests
-- README copy that explains only discovery details instead of user value
+- README copy that buries the value behind installation steps
+- Reintroducing a discovery flow for the RocketSim app bundle (2.0 explicitly removed this)
 
 ## Resources
 - Agent Skills overview: https://agentskills.io/home

@@ -8,20 +8,22 @@ Agent Skills are structured prompt assets with:
 - Packaging files that allow tools like Claude Code, Cursor, and OpenAI-compatible agents to install the skill
 
 ## What This Repository Covers
-This repository is focused on the RocketSim Agent Skill only.
+This repository is focused on the RocketSim Agent Skill only. Starting with 2.0, the skill talks to the `rocketsim` CLI on `PATH` directly via the `rs/1` JSON protocol; there is no discovery flow.
 
 Good contributions include:
 - improving trigger quality in `Agent-Skill/SKILL.md`
 - fixing installation or packaging metadata
 - improving release automation for the skill repository
 - clarifying README copy and verification steps
+- keeping the skill in sync with the canonical `rs/1` protocol reference at <https://www.rocketsim.app/docs/features/agentic-development/>
 
 ## Quality Standards
 - Keep content RocketSim-specific
 - Keep the skill description explicit about when to use RocketSim
+- Keep the skill token-minimal: prefer tables and one-line examples over prose, and link to the canonical docs for long-form details
 - Avoid competitor comparisons
 - Avoid generic iOS architecture or testing guidance
-- Keep packaging manifests and versions in sync
+- Keep packaging manifests in sync (versions are bumped automatically by `.github/workflows/release.yml`)
 
 ## Packaging Sync Checklist
 Treat the following files as one surface area when changing install metadata, repository URLs, skill paths, or release versions:

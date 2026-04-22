@@ -1,10 +1,11 @@
 name: rocketsim
 version: "1.0.0"
 description: >-
-  Use RocketSim to inspect visible UI and interact with iOS Simulator apps.
-  Detects the installed RocketSim version, loads the matching bundled
-  RocketSim CLI guidance, and helps agents navigate, tap, swipe, type, and
-  automate simulator flows reliably.
+  Use the RocketSim CLI (rocketsim on PATH) to inspect and interact with iOS
+  Simulator apps via the rs/1 JSON protocol. Read visible accessibility
+  elements as a compact agent snapshot, then tap, long-press, type, swipe,
+  scroll, focus, or press hardware buttons by stable element id with race
+  protection via screen hashes.
 author:
   name: Antoine van der Lee
   email: contact@avanderlee.com

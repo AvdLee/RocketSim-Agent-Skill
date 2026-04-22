@@ -1,94 +1,138 @@
 ---
 name: rocketsim
-description: "Use RocketSim to inspect visible UI and interact with iOS Simulator apps. Detects the installed RocketSim version, loads the matching bundled RocketSim CLI guidance, and helps agents read visible accessibility elements, navigate screens, tap, long-press, swipe, type text, press simulator hardware buttons, and automate simulator flows reliably. Use when: (1) the user mentions RocketSim, the rocketsim command, or RocketSim CLI, (2) interacting with an app in the iOS Simulator, (3) navigating or testing a simulator app with AI, (4) reading visible UI state or accessibility elements, (5) tapping, long-pressing, swiping, typing, or pressing simulator buttons, (6) using RocketSim instead of ad-hoc simulator automation."
+description: "Use the `rocketsim` CLI on PATH to inspect and interact with iOS Simulator apps via the rs/1 JSON protocol. Read visible accessibility elements as a compact agent snapshot, then tap, long-press, type, swipe, scroll, focus, or press hardware buttons by stable element id with race protection via screen hashes. Use when: (1) the user mentions RocketSim, the rocketsim command, or RocketSim CLI, (2) interacting with an app in the iOS Simulator, (3) navigating or testing a simulator app with AI, (4) reading visible UI state or accessibility elements, (5) tapping, long-pressing, swiping, scrolling, typing, or pressing simulator buttons, (6) using RocketSim instead of ad-hoc simulator automation."
 ---
 
 # RocketSim Agent Skill
 
-This skill lets agents use RocketSim as a reliable Simulator interaction layer. It finds a valid RocketSim app bundle, loads the matching bundled CLI reference, and hands off to the installed RocketSim version so simulator automation stays version-aware and in sync with the app on disk.
+`rocketsim` is a CLI on `PATH` that talks to the running RocketSim app via the
+`rs/1` JSON protocol. Use it to inspect and interact with iOS Simulator apps
+reliably and with low token cost.
 
-## Step 1: Locate and validate RocketSim.app
+## Prerequisite (one-time)
 
-Developer machines can have multiple RocketSim installs side-by-side, such as an App Store build plus a locally built or renamed copy. Do not assume `/Applications/RocketSim.app` is the right app, and do not continue unless you validate the bundled skill and CLI paths first.
+If `which rocketsim` fails, ask the user to open **RocketSim → Settings →
+Command Line Tool** and click *Install Command Line Tool*. RocketSim symlinks
+the CLI into `/opt/homebrew/bin` (Apple Silicon) or `/usr/local/bin` (Intel),
+so the CLI on `PATH` always equals the installed app version with zero drift.
 
-### Prefer the running RocketSim app
+If RocketSim is not installed, link to
+<https://apps.apple.com/app/apple-store/id1504940162>.
 
-If RocketSim is already running, prefer that app bundle first:
+## The agent loop
 
-```bash
-ROCKETSIM_PID="$(pgrep -x RocketSim | head -1)"
-APP_PATH=""
-if [ -n "$ROCKETSIM_PID" ]; then
-  APP_PATH="$(ps -o command= -p "$ROCKETSIM_PID" | sed 's#/Contents/MacOS/RocketSim$##')"
-fi
-printf '%s
-' "$APP_PATH"
-```
+Every interaction follows the same four steps:
 
-If that prints a path, validate it before continuing.
+1. **Snapshot** — `rocketsim screen` (~25 tokens) for a tiny summary, or
+   `rocketsim elements --agent` for the full snapshot.
+2. **Act** — `rocketsim interact <action> --id <N> --screen <hash>`. Always
+   pass `--screen` so the CLI fails fast on stale snapshots instead of acting
+   on the wrong element.
+3. **Wait** — `rocketsim wait screen-changed --from <hash>` if the action
+   navigates, or `rocketsim wait keyboard --state hidden|visible` if a
+   keyboard appears or dismisses.
+4. **Re-snapshot** — repeat from step 1.
 
-### Otherwise, enumerate candidate installs
+Pick the right snapshot mode for the step:
 
-If RocketSim is not running, gather candidate app bundles instead of taking the first match:
+| Mode  | Use when                                                  | Includes                                                         |
+| ----- | --------------------------------------------------------- | ---------------------------------------------------------------- |
+| `nav` | Deciding what screen you are on, or which area to act in. | Headings, tabs, nav bars, top-level controls. Smallest body.     |
+| `act` | About to tap, type, swipe, or scroll a specific element.  | Interactive elements with id, label, role, frame. Default mode.  |
+| `debug` | Investigating why an action failed or an element is missing. | Full tree with parent ids, traits, raw frames.               |
 
-```bash
-mdfind "kMDItemCFBundleIdentifier == 'com.swiftLee.RocketSim'"
-```
+Add `--since <hash>` to `elements --agent` to get an empty body when the
+screen hash is unchanged; skip the second read entirely.
 
-Then also check common fallback paths, including renamed installs:
+## Targeting elements
 
-1. `/Applications/RocketSim.app`
-2. `/Applications/RocketSim 2.app`
-3. `~/Applications/RocketSim.app`
-4. `~/Applications/RocketSim 2.app`
-
-### Validate every candidate before continuing
-
-Given a candidate app path (`APP_PATH`), the following two files must exist:
-
-- `APP_PATH/Contents/Resources/Agent-Skill/SKILL.md`
-- `APP_PATH/Contents/Helpers/rocketsim`
-
-Use this validation:
+Always target by **id** from the latest snapshot. Coordinates and label scans
+are advanced fallbacks.
 
 ```bash
-test -f "$APP_PATH/Contents/Resources/Agent-Skill/SKILL.md" && test -x "$APP_PATH/Contents/Helpers/rocketsim"
+rocketsim interact tap        --id 7 --screen $H
+rocketsim interact long-press --id 12 --duration 1.5 --screen $H
+rocketsim interact type       --id 4 --text "hello" --screen $H
+rocketsim interact type       --id 4 --stdin --screen $H < message.txt
+rocketsim interact type       --id 4 --file ./body.txt --screen $H
+rocketsim interact swipe      --id 9 --direction up --screen $H
+rocketsim interact scroll     --id 9 --direction up --pages 0.5 --screen $H
+rocketsim interact focus      --id 4 --screen $H
 ```
 
-Pick the first candidate that passes validation. If RocketSim is already running, only continue with the running app if it passes validation.
-
-If no candidate passes validation, stop immediately and tell the user:
-> I found RocketSim installs, but none of them expose the bundled Agent Skill and CLI that this workflow requires. Please launch or install a current RocketSim build from the Mac App Store: https://apps.apple.com/us/app/rocketsim-for-xcode-simulator/id1504940162
-
-## Step 2: Resolve Paths
-
-Given the app path (`APP_PATH`), derive:
-- **Bundled skill:** `APP_PATH/Contents/Resources/Agent-Skill/SKILL.md`
-- **CLI binary:** `APP_PATH/Contents/Helpers/rocketsim`
-
-## Discovery contract
-
-Before moving on to Step 3, all of the following must be true:
-
-- `APP_PATH` points to the RocketSim bundle you intend to use.
-- `APP_PATH/Contents/Resources/Agent-Skill/SKILL.md` exists.
-- `APP_PATH/Contents/Helpers/rocketsim` exists and is executable.
-- If RocketSim is already running, the chosen `APP_PATH` should be the running app bundle.
-
-If any of these checks fail, stop and resolve discovery first. Do not attempt simulator interaction without a validated CLI path.
-
-## Step 3: Read the Bundled Skill
-
-Read the file at `APP_PATH/Contents/Resources/Agent-Skill/SKILL.md` and follow its instructions. Wherever the bundled skill references the CLI binary, use the resolved absolute path from Step 2.
-
-## Step 4: Verify RocketSim is Running
-
-Before executing any CLI command, verify the app is running:
+Hardware buttons do not need an id:
 
 ```bash
-pgrep -x RocketSim >/dev/null && echo "Running" || echo "Not running"
+rocketsim interact button --name home
+rocketsim interact button --name lock --duration 1.5   # lock and side support hold
 ```
 
-If not running, ask the user to launch RocketSim before proceeding.
+Pass `--screen <hash>` on every interaction. If the snapshot has changed
+under you, the CLI returns `snapshot_changed` instead of acting on the
+wrong element. Re-snapshot and retry with the new id.
 
-If RocketSim is running from a different app bundle than the `APP_PATH` you resolved, restart discovery and prefer the running app bundle.
+## Blocking primitives
+
+```bash
+rocketsim wait screen-changed --from $H   [--timeout 5]
+rocketsim wait element        --label "Done" [--state enabled] [--timeout 5]
+rocketsim wait keyboard       --state hidden|visible [--timeout 5]
+```
+
+Batch sequential steps with `do` so the CLI re-snapshots and re-validates
+between each step:
+
+```bash
+rocketsim do \
+  --step "interact tap --id 3" \
+  --step "interact type --id 4 --text 'hello'" \
+  --step "interact tap --label Submit" \
+  [--continue-on-error]
+```
+
+Need an annotated screenshot of the current state for visual reasoning?
+
+```bash
+rocketsim snapshot --agent --agent-mode act --image /tmp/state.png
+```
+
+## Error taxonomy
+
+Every error response is JSON with `code`, `message`, `recovery_suggestion`,
+and an optional `context` map (expected vs current hash, candidate ids, etc.).
+
+| Code                        | Meaning                                               | Recovery                                                            |
+| --------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------- |
+| `snapshot_changed`          | The hash you passed via `--screen` no longer matches. | Re-snapshot; retry with the new id and hash.                        |
+| `element_not_found`         | No element matches the given id or selector.          | Re-snapshot and target a current id.                                |
+| `multiple_matches`          | Selector matched more than one element.               | Use `--id` instead, or refine the selector.                         |
+| `element_disabled`          | Element exists but is not enabled.                    | Wait for the precondition or pick another path.                     |
+| `element_offscreen`         | Element exists but is not hittable.                   | Scroll the parent until it becomes hittable.                        |
+| `keyboard_obscures_target`  | Software keyboard covers the target.                  | Dismiss the keyboard or scroll the target into view, then retry.    |
+| `wait_timeout`              | The wait condition did not resolve within `--timeout`. | Increase the timeout or reconsider the precondition.               |
+| `simulator_not_focused`     | The simulator window is not active.                   | Ask the user to bring the simulator window forward.                 |
+| `simulator_not_booted`      | No booted simulator.                                  | Ask the user to boot a simulator.                                   |
+| `app_not_running`           | Target app is not running.                            | Ask the user to launch the app under test.                          |
+
+## End-to-end example
+
+```bash
+SNAP=$(rocketsim elements --agent --agent-mode act)
+HASH=$(jq -r '.screen.hash' <<<"$SNAP")
+ID=$(jq '.elements[] | select(.label=="Sign In") | .id' <<<"$SNAP")
+
+rocketsim interact tap --id "$ID" --screen "$HASH"
+rocketsim wait screen-changed --from "$HASH" --timeout 5
+
+SNAP=$(rocketsim elements --agent --agent-mode act)
+HASH=$(jq -r '.screen.hash' <<<"$SNAP")
+EMAIL=$(jq '.elements[] | select(.label=="Email") | .id' <<<"$SNAP")
+
+rocketsim interact type --id "$EMAIL" --text "user@example.com" --screen "$HASH"
+```
+
+## Reference
+
+The canonical long-form `rs/1` protocol reference, including full JSON
+schemas, advanced selectors, and coordinate-based fallbacks, lives at
+<https://www.rocketsim.app/docs/features/agentic-development/>.
