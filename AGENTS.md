@@ -31,7 +31,7 @@ The whole point of this skill is to *reduce* tokens spent per agent session. Eve
 Do:
 - favor short tables and one-line examples over prose
 - keep error taxonomies as flat tables, not paragraphs
-- link to <https://www.rocketsim.app/docs/features/agentic-development/> for long-form details rather than duplicating them
+- link to <https://www.rocketsim.app/docs/features/agentic-development/> for long-form details rather than duplicating them (that page is authored in the [`AvdLee/RocketSimApp`](https://github.com/AvdLee/RocketSimApp) repo — open a docs PR there in the same release window when the CLI surface changes)
 
 Do not:
 - reintroduce a discovery flow (we removed that in 2.0; the CLI must be on `PATH`)

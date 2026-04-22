@@ -15,7 +15,7 @@ Good contributions include:
 - fixing installation or packaging metadata
 - improving release automation for the skill repository
 - clarifying README copy and verification steps
-- keeping the skill in sync with the canonical `rs/1` protocol reference at <https://www.rocketsim.app/docs/features/agentic-development/>
+- keeping the skill in sync with the canonical `rs/1` protocol reference at <https://www.rocketsim.app/docs/features/agentic-development/> (authored in the [`AvdLee/RocketSimApp`](https://github.com/AvdLee/RocketSimApp) repo — open a docs PR there in the same release window when the CLI surface changes)
 
 ## Quality Standards
 - Keep content RocketSim-specific
