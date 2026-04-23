@@ -19,6 +19,10 @@ For the canonical long-form `rs/1` protocol reference, see the
 - Exposes blocking primitives (`wait screen-changed`, `wait element`,
   `wait keyboard`) so the agent loop never busy-polls.
 - Batches sequential steps with `do`, re-snapshotting between each step.
+- Emits the same **`rs/1` JSON envelope** for every command —
+  `{"rs":"1","ok":true,"data":…}` on success and
+  `{"rs":"1","ok":false,"error":{"code":…,"message":…,"recovery_suggestion":…}}`
+  on failure — so drivers parse one shape and switch on typed error codes.
 
 ## Why Install It
 
@@ -127,11 +131,18 @@ RocketSim app bundle and read a version-matched `SKILL.md` from inside it.
 Starting with 2.0 the skill talks to the CLI directly via the `rs/1`
 protocol and assumes `rocketsim` is on `PATH`.
 
+2.0 also unifies every CLI response under a single `RS1Envelope` JSON shape
+(`{"rs":"1","ok":…,"data":…|"error":…}`). The legacy mix of `rs/1` plain text,
+unwrapped JSON, and plain-text errors is gone — drivers parse one shape and
+branch on typed `AgentErrorCode` raw values.
+
 If you are upgrading:
 
 1. Open **RocketSim → Settings → Command Line Tool** and click
    *Install Command Line Tool* once.
 2. Reinstall the skill via one of the options above to pick up 2.0.
+3. Update any local driver code that read raw stdout to instead JSON-decode
+   the envelope and switch on `ok` / `error.code`.
 
 There is no per-project state to migrate.
 

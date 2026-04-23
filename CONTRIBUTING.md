@@ -8,7 +8,7 @@ Agent Skills are structured prompt assets with:
 - Packaging files that allow tools like Claude Code, Cursor, and OpenAI-compatible agents to install the skill
 
 ## What This Repository Covers
-This repository is focused on the RocketSim Agent Skill only. Starting with 2.0, the skill talks to the `rocketsim` CLI on `PATH` directly via the `rs/1` JSON protocol; there is no discovery flow.
+This repository is focused on the RocketSim Agent Skill only. Starting with 2.0, the skill talks to the `rocketsim` CLI on `PATH` directly via the `rs/1` JSON protocol; there is no discovery flow. Every CLI response is a single `RS1Envelope` (`{"rs":"1","ok":…,"data":…|"error":…}`) — never plain text. Documentation in `Agent-Skill/SKILL.md`, this file, and the README must describe the envelope shape and typed `AgentErrorCode` raw values consistently.
 
 Good contributions include:
 - improving trigger quality in `Agent-Skill/SKILL.md`

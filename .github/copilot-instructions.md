@@ -34,7 +34,8 @@ Examples in this repository are reference patterns for AI agents, not production
 2. **Token budget**
    - Does every section of `SKILL.md` pay for its tokens? Prefer tables and one-line examples; link to <https://www.rocketsim.app/docs/features/agentic-development/> for long-form details.
 3. **CLI accuracy**
-   - Are the `rocketsim` commands, flags, error codes, and the `rs/1` JSON envelope described correctly and consistently with the latest RocketSim release?
+   - Are the `rocketsim` commands, flags, and the `rs/1` JSON envelope (`{"rs":"1","ok":true,"data":…}` / `{"rs":"1","ok":false,"error":{"code":…,"message":…,"recovery_suggestion":…,"context":{…}}}`) described correctly and consistently with the latest RocketSim release?
+   - Are the documented error codes the literal `AgentErrorCode` raw values (`snapshot_changed`, `element_not_found`, `multiple_matches`, `invalid_argument`, `wait_timeout`, `keyboard_obscures_target`, `duration_not_supported`, `internal_error`)? Drift from these breaks driver branching and is a hard fail in review.
 4. **Packaging quality**
    - Do manifest files reference the correct repository, skill path, and version?
 5. **Release safety**

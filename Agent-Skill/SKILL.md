@@ -1,75 +1,102 @@
 ---
 name: rocketsim
-description: "Use the `rocketsim` CLI on PATH to inspect and interact with iOS Simulator apps via the rs/1 JSON protocol. Read visible accessibility elements as a compact agent snapshot, then tap, long-press, type, swipe, scroll, focus, or press hardware buttons by stable element id with race protection via screen hashes. Use when: (1) the user mentions RocketSim, the rocketsim command, or RocketSim CLI, (2) interacting with an app in the iOS Simulator, (3) navigating or testing a simulator app with AI, (4) reading visible UI state or accessibility elements, (5) tapping, long-pressing, swiping, scrolling, typing, or pressing simulator buttons, (6) using RocketSim instead of ad-hoc simulator automation."
+description: "Use the `rocketsim` CLI on PATH to inspect and interact with iOS Simulator apps via the rs/1 JSON envelope. Read visible accessibility elements as a compact agent snapshot, then tap, long-press, type, swipe, scroll, focus, or press hardware buttons by stable element id with race protection via screen hashes. Use when: (1) the user mentions RocketSim, the rocketsim command, or RocketSim CLI, (2) interacting with an app in the iOS Simulator, (3) navigating or testing a simulator app with AI, (4) reading visible UI state or accessibility elements, (5) tapping, long-pressing, swiping, scrolling, typing, or pressing simulator buttons, (6) using RocketSim instead of ad-hoc simulator automation."
 ---
 
 # RocketSim Agent Skill
 
-`rocketsim` is a CLI on `PATH` that talks to the running RocketSim app via the
-`rs/1` JSON protocol. Use it to inspect and interact with iOS Simulator apps
+`rocketsim` is a CLI on `PATH` that drives the running RocketSim app via the
+**rs/1 JSON envelope**. Use it to inspect and interact with iOS Simulator apps
 reliably and with low token cost.
 
-## Prerequisite (one-time)
+## Setup (one-time)
 
 If `which rocketsim` fails, ask the user to open **RocketSim → Settings →
 Command Line Tool** and click *Install Command Line Tool*. RocketSim symlinks
 the CLI into `/opt/homebrew/bin` (Apple Silicon) or `/usr/local/bin` (Intel),
-so the CLI on `PATH` always equals the installed app version with zero drift.
+so the CLI on `PATH` always equals the installed app version.
 
 If RocketSim is not installed, link to
 <https://apps.apple.com/app/apple-store/id1504940162>.
 
-## The agent loop
+Verify the stack end-to-end with `rocketsim doctor` — emits a
+`{checks, summary}` envelope and exits non-zero on any `fail`.
 
-Every interaction follows the same four steps:
+## The rs/1 envelope
 
-1. **Snapshot** — `rocketsim screen` (~25 tokens) for a tiny summary, or
-   `rocketsim elements --agent` for the full snapshot.
-2. **Act** — `rocketsim interact <action> --id <N> --screen <hash>`. Always
-   pass `--screen` so the CLI fails fast on stale snapshots instead of acting
-   on the wrong element.
-3. **Wait** — `rocketsim wait screen-changed --from <hash>` if the action
-   navigates, or `rocketsim wait keyboard --state hidden|visible` if a
-   keyboard appears or dismisses.
-4. **Re-snapshot** — repeat from step 1.
+**Every** `rocketsim` command writes a single JSON envelope to stdout. Parse
+it; never read plain text.
 
-Pick the right snapshot mode for the step:
-
-| Mode  | Use when                                                  | Includes                                                         |
-| ----- | --------------------------------------------------------- | ---------------------------------------------------------------- |
-| `nav` | Deciding what screen you are on, or which area to act in. | Headings, tabs, nav bars, top-level controls. Smallest body.     |
-| `act` | About to tap, type, swipe, or scroll a specific element.  | Interactive elements with id, label, role, frame. Default mode.  |
-| `debug` | Investigating why an action failed or an element is missing. | Full tree with parent ids, traits, raw frames.               |
-
-Add `--since <hash>` to `elements --agent` to get an empty body when the
-screen hash is unchanged; skip the second read entirely.
-
-## Targeting elements
-
-Always target by **id** from the latest snapshot. Coordinates and label scans
-are advanced fallbacks.
-
-```bash
-rocketsim interact tap        --id 7 --screen $H
-rocketsim interact long-press --id 12 --duration 1.5 --screen $H
-rocketsim interact type       --id 4 --text "hello" --screen $H
-rocketsim interact type       --id 4 --stdin --screen $H < message.txt
-rocketsim interact type       --id 4 --file ./body.txt --screen $H
-rocketsim interact swipe      --id 9 --direction up --screen $H
-rocketsim interact scroll     --id 9 --direction up --pages 0.5 --screen $H
-rocketsim interact focus      --id 4 --screen $H
+```json
+{"rs":"1","ok":true,"data":{ /* command-specific payload */ }}
 ```
 
-Hardware buttons do not need an id:
+```json
+{"rs":"1","ok":false,"error":{
+  "code":"snapshot_changed",
+  "message":"Screen has moved past the snapshot you targeted.",
+  "recovery_suggestion":"Re-run rocketsim elements --agent and retry with the new id and hash.",
+  "context":{"expected":"a1b2c3d4","current":"e5f6a7b8"}
+}}
+```
+
+Branch on `ok`. On failure, switch on `error.code` (see taxonomy below) and
+follow `recovery_suggestion`.
+
+## The agent loop
+
+1. **Snapshot** — `rocketsim screen` (~25 tokens) for a tiny summary, or
+   `rocketsim elements --agent` for the full snapshot. Pull `screen.hash`
+   and the `id` you want from the envelope's `data`.
+2. **Resolve id + hash** from `data.elements[]` and `data.screen.hash`.
+3. **Interact** — `rocketsim interact <action> --id <N> --screen <hash>`.
+   `--screen` is the race-window guard: the server only accepts the **current
+   or immediately-previous** snapshot and otherwise returns `snapshot_changed`.
+4. **Wait** — `rocketsim wait screen-changed --from <hash>` if the action
+   navigates, or `rocketsim wait keyboard --state hidden|visible` if a
+   keyboard appears or dismisses. Then loop back to step 1.
+
+Snapshot modes (`elements --agent --agent-mode <mode>`):
+
+| Mode    | Use when                                              | Body                                                  |
+| ------- | ----------------------------------------------------- | ----------------------------------------------------- |
+| `nav`   | Deciding what screen you are on or where to act.      | Headings, tabs, nav bars, top-level controls.         |
+| `act`   | About to tap, type, swipe, or scroll a known element. | Interactive elements with id, label, role, frame.     |
+| `debug` | An action failed or an element looks wrong.           | Full tree with parent ids, traits, raw frames.        |
+
+`data.scrollables[]` is populated with every scrollable container in view.
+Add `--since <hash>` to get an empty body when the screen hash is unchanged.
+
+## Interactions
+
+Always target by **id** from the latest snapshot.
+
+```bash
+rocketsim interact tap        --id 7  --screen $H
+rocketsim interact long-press --id 12 --duration 1.5 --screen $H
+rocketsim interact type "user@example.com" --id 4 --screen $H
+rocketsim interact type --stdin            --id 4 --screen $H < message.txt
+rocketsim interact type --file ./body.txt  --screen $H
+rocketsim interact swipe  --id 9 --direction up --screen $H
+rocketsim interact swipe  --from "200,400" --to "200,100"      # coordinate-anchored
+rocketsim interact scroll --id 9  --direction up --pages 1 --screen $H
+rocketsim interact focus  --id 4  --screen $H
+```
+
+`interact type` takes the text as a **positional** argument (not `--text`).
+`interact scroll --id <N>` auto-resolves to the nearest scrollable ancestor
+when `<N>` is a child element.
+
+Hardware buttons need no id:
 
 ```bash
 rocketsim interact button --name home
 rocketsim interact button --name lock --duration 1.5   # lock and side support hold
 ```
 
-Pass `--screen <hash>` on every interaction. If the snapshot has changed
-under you, the CLI returns `snapshot_changed` instead of acting on the
-wrong element. Re-snapshot and retry with the new id.
+**Toggles / switches**: in the snapshot they appear as `role=checkBox` with
+`value="0"` (off) or `value="1"` (on). Tap them like any other element; the
+server verifies the value flipped and returns an error if it did not.
 
 ## Blocking primitives
 
@@ -79,18 +106,17 @@ rocketsim wait element        --label "Done" [--state enabled] [--timeout 5]
 rocketsim wait keyboard       --state hidden|visible [--timeout 5]
 ```
 
-Batch sequential steps with `do` so the CLI re-snapshots and re-validates
-between each step:
+Batch sequential steps with `do` (re-snapshots and re-validates between each):
 
 ```bash
 rocketsim do \
   --step "interact tap --id 3" \
-  --step "interact type --id 4 --text 'hello'" \
+  --step "interact type 'hello' --id 4" \
   --step "interact tap --label Submit" \
   [--continue-on-error]
 ```
 
-Need an annotated screenshot of the current state for visual reasoning?
+Annotated screenshot for visual reasoning:
 
 ```bash
 rocketsim snapshot --agent --agent-mode act --image /tmp/state.png
@@ -98,41 +124,38 @@ rocketsim snapshot --agent --agent-mode act --image /tmp/state.png
 
 ## Error taxonomy
 
-Every error response is JSON with `code`, `message`, `recovery_suggestion`,
-and an optional `context` map (expected vs current hash, candidate ids, etc.).
+`error.code` is an `AgentErrorCode` raw value — stable, machine-parseable.
 
-| Code                        | Meaning                                               | Recovery                                                            |
-| --------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------- |
-| `snapshot_changed`          | The hash you passed via `--screen` no longer matches. | Re-snapshot; retry with the new id and hash.                        |
-| `element_not_found`         | No element matches the given id or selector.          | Re-snapshot and target a current id.                                |
-| `multiple_matches`          | Selector matched more than one element.               | Use `--id` instead, or refine the selector.                         |
-| `element_disabled`          | Element exists but is not enabled.                    | Wait for the precondition or pick another path.                     |
-| `element_offscreen`         | Element exists but is not hittable.                   | Scroll the parent until it becomes hittable.                        |
-| `keyboard_obscures_target`  | Software keyboard covers the target.                  | Dismiss the keyboard or scroll the target into view, then retry.    |
-| `wait_timeout`              | The wait condition did not resolve within `--timeout`. | Increase the timeout or reconsider the precondition.               |
-| `simulator_not_focused`     | The simulator window is not active.                   | Ask the user to bring the simulator window forward.                 |
-| `simulator_not_booted`      | No booted simulator.                                  | Ask the user to boot a simulator.                                   |
-| `app_not_running`           | Target app is not running.                            | Ask the user to launch the app under test.                          |
+| Code                       | When                                                  | Do                                                         |
+| -------------------------- | ----------------------------------------------------- | ---------------------------------------------------------- |
+| `snapshot_changed`         | `--screen` is older than the previous snapshot.       | Re-snapshot; retry with the new id and hash.               |
+| `element_not_found`        | No element matches the id/selector.                   | Re-snapshot and target a current id.                       |
+| `multiple_matches`         | A label/selector matched more than one element.       | Use `--id` instead, or refine the selector.                |
+| `keyboard_obscures_target` | The software keyboard covers the target frame.        | Dismiss the keyboard or scroll the target into view.       |
+| `wait_timeout`             | A `wait` did not resolve within `--timeout`.          | Increase the timeout or reconsider the precondition.       |
+| `invalid_argument`         | A flag combination or value is rejected client-side.  | Read `error.message`; fix the flags and retry.             |
+| `duration_not_supported`   | The action does not accept the supplied `--duration`. | Drop `--duration`, or use the action that supports holds.  |
+| `internal_error`           | Server-side bug or unexpected state.                  | Retry once; otherwise surface to the user with `message`.  |
 
 ## End-to-end example
 
 ```bash
 SNAP=$(rocketsim elements --agent --agent-mode act)
-HASH=$(jq -r '.screen.hash' <<<"$SNAP")
-ID=$(jq '.elements[] | select(.label=="Sign In") | .id' <<<"$SNAP")
+HASH=$(jq -r '.data.screen.hash'                       <<<"$SNAP")
+ID=$(  jq    '.data.elements[] | select(.label=="Sign In") | .id' <<<"$SNAP")
 
 rocketsim interact tap --id "$ID" --screen "$HASH"
 rocketsim wait screen-changed --from "$HASH" --timeout 5
 
 SNAP=$(rocketsim elements --agent --agent-mode act)
-HASH=$(jq -r '.screen.hash' <<<"$SNAP")
-EMAIL=$(jq '.elements[] | select(.label=="Email") | .id' <<<"$SNAP")
+HASH=$(jq -r '.data.screen.hash'                       <<<"$SNAP")
+EMAIL=$(jq   '.data.elements[] | select(.label=="Email") | .id' <<<"$SNAP")
 
-rocketsim interact type --id "$EMAIL" --text "user@example.com" --screen "$HASH"
+rocketsim interact type "user@example.com" --id "$EMAIL" --screen "$HASH"
 ```
 
 ## Reference
 
-The canonical long-form `rs/1` protocol reference, including full JSON
-schemas, advanced selectors, and coordinate-based fallbacks, lives at
+Canonical long-form `rs/1` protocol reference (full envelope schemas, advanced
+selectors, coordinate fallbacks):
 <https://www.rocketsim.app/docs/features/agentic-development/>.

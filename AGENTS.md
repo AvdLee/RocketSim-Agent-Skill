@@ -25,7 +25,15 @@ When updating them:
 - keep the skill description user-intent oriented
 - avoid vague wording like "helps with simulator tasks"
 
-### 3. Keep The Skill Token-Minimal
+### 3. Documentation Must Match The `rs/1` Envelope
+Every `rocketsim` command writes a single `RS1Envelope` JSON object to stdout:
+`{"rs":"1","ok":true,"data":…}` on success, or
+`{"rs":"1","ok":false,"error":{"code":…,"message":…,"recovery_suggestion":…,"context":{…}}}`
+on failure. Examples, error tables, and the four-step loop in `Agent-Skill/SKILL.md` MUST match this shape. Drift between the docs and the wire format cost a turn during the in-house agent eval — fix any mismatch in the same PR you spot it.
+
+When the error taxonomy changes, mirror the `AgentErrorCode` raw values (e.g. `snapshot_changed`, `element_not_found`, `multiple_matches`, `invalid_argument`, `wait_timeout`, `keyboard_obscures_target`, `duration_not_supported`, `internal_error`) verbatim — they are the public contract.
+
+### 4. Keep The Skill Token-Minimal
 The whole point of this skill is to *reduce* tokens spent per agent session. Every change should ask: does this earn its tokens?
 
 Do:
@@ -38,7 +46,7 @@ Do not:
 - duplicate the canonical `rs/1` protocol reference inside this repo
 - add tutorial-style scaffolding when a code snippet would do
 
-### 4. Packaging Files Must Stay In Sync
+### 5. Packaging Files Must Stay In Sync
 Whenever the skill changes in a way that affects installation or versioning, update the packaging files together:
 - `agents/openai.yaml`
 - `.claude-plugin/plugin.json`
@@ -47,7 +55,7 @@ Whenever the skill changes in a way that affects installation or versioning, upd
 
 Keep repository URLs and skill paths aligned. Versions are bumped automatically by `.github/workflows/release.yml` on dispatch — do not bump them manually in PRs.
 
-### 5. README Should Sell The Outcome
+### 6. README Should Sell The Outcome
 The README should explain why this skill matters:
 - it is a companion to RocketSim
 - it gives agents a stateful way to interact with the Simulator with low token cost
@@ -76,9 +84,10 @@ Avoid:
 
 When making changes, check:
 1. Is the skill still focused on the `rs/1` agent loop?
-2. Does the SKILL.md still pay for its tokens?
-3. Do the plugin manifests still reference the right repository and skill path?
-4. Does the README still make the value obvious to first-time visitors?
+2. Do every example, error code, and command shape in `SKILL.md` match the live `RS1Envelope` wire format?
+3. Does `SKILL.md` still pay for its tokens?
+4. Do the plugin manifests still reference the right repository and skill path?
+5. Does the README still make the value obvious to first-time visitors?
 
 ## Summary
 
