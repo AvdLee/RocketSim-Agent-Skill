@@ -5,8 +5,15 @@ description: "Use the `rocketsim` CLI on PATH to inspect and interact with iOS S
 
 # RocketSim Agent Skill
 
+<<<<<<< Updated upstream
 `rocketsim` is a CLI on `PATH` that drives the running RocketSim app via the
 **rs/1 JSON envelope**. Use it to inspect and interact with iOS Simulator apps
+=======
+`rocketsim` is a CLI on `PATH` that talks to the running RocketSim app via the
+`rs/1` JSON protocol for reads and interactions. The `snapshot` command is the
+one exception: it streams annotated PNG bytes to stdout so you save it with
+shell redirection. Use the CLI to inspect and interact with iOS Simulator apps
+>>>>>>> Stashed changes
 reliably and with low token cost.
 
 ## Setup (one-time)
@@ -119,7 +126,7 @@ rocketsim do \
 Annotated screenshot for visual reasoning:
 
 ```bash
-rocketsim snapshot --agent --agent-mode act --image /tmp/state.png
+rocketsim snapshot --agent-mode act --screen "$HASH" > /tmp/state.png
 ```
 
 ## Error taxonomy
