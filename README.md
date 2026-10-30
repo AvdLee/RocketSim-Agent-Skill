@@ -21,20 +21,20 @@ version and stay current with App Store updates.
 
 Full guide: [RocketSim Agent Skill docs](https://www.rocketsim.app/docs/features/agentic-development/agent-skill/).
 
-## Install with `npx skills`
+## Found this through `npx skills` or skills.sh?
 
-If you prefer to discover the skill through the skills ecosystem:
+The skill is installed from the RocketSim app, as described above. This
+repository is only a discovery channel, so the bridge skill below is a
+convenience, not the install path:
 
 ```bash
 npx skills add avdlee/rocketsim-agent-skill
 ```
 
-This installs `rocketsim-setup`, a small bridge skill. It does not contain
-RocketSim's instructions. It finds the RocketSim app on your Mac, reads the
-version-matched skill bundled inside it, follows it for the session, and tells
-you how to do the permanent install from RocketSim Settings. Because it only
-points at the bundled skill, it cannot go out of date. RocketSim is still
-required.
+It installs `rocketsim-setup`, which does not contain RocketSim's instructions.
+It finds the RocketSim app on your Mac, reads the version-matched skill bundled
+inside it, follows that for the session, and points you to the permanent
+install in RocketSim Settings. RocketSim is still required.
 
 ## What can the agent do?
 
